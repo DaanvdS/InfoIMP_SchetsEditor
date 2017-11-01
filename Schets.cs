@@ -4,11 +4,14 @@ using System.Drawing;
 
 namespace SchetsEditor {
     public class Schets {
-        public Bitmap bitmap;
+        private Bitmap bitmap;
+        private List<SchetsElement> schetslijst;
 
         public Schets() {
             bitmap = new Bitmap(1, 1);
+            schetslijst = new List<SchetsElement>();
         }
+
         public Graphics BitmapGraphics {
             get { return Graphics.FromImage(bitmap); }
         }
