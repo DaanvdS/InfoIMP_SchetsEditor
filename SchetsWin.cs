@@ -14,6 +14,8 @@ namespace SchetsEditor
         ISchetsTool huidigeTool;
         Panel paneel;
         bool vast;
+        bool onopgeslagenVeranderingen=true;
+
         ResourceManager resourcemanager
             = new ResourceManager("SchetsEditor.Properties.Resources"
                                  , Assembly.GetExecutingAssembly()
@@ -36,9 +38,68 @@ namespace SchetsEditor
             this.huidigeTool = (ISchetsTool)((RadioButton)obj).Tag;
         }
 
+        public void laden() {
+            //Show file dialog
+            OpenFileDialog ofd_Schets = new OpenFileDialog();
+            ofd_Schets.Filter = "JPEG Image|*.jpg|Bitmap Image|*.bmp|PNG Image|*.png";
+            ofd_Schets.Title = "Open image";
+            ofd_Schets.ShowDialog();
+
+            if (ofd_Schets.FileName != "") {
+                System.IO.FileStream fs_Schets = (System.IO.FileStream)ofd_Schets.OpenFile();
+                this.schetscontrol.Schets.bitmap = new Bitmap(Image.FromStream(fs_Schets));
+                this.schetscontrol.Invalidate();
+                fs_Schets.Close();
+            }
+        }
+
+        private void opslaan(object sender, EventArgs e) {
+            //Show file dialog
+            SaveFileDialog sfd_Schets = new SaveFileDialog();
+            sfd_Schets.Filter = "JPEG Image|*.jpg|Bitmap Image|*.bmp|PNG Image|*.png";
+            sfd_Schets.Title = "Save image";
+            sfd_Schets.ShowDialog();
+
+            //Check which image type to save to, and save
+            if (sfd_Schets.FileName != "") {
+                System.IO.FileStream fs_Schets = (System.IO.FileStream)sfd_Schets.OpenFile();
+                switch (sfd_Schets.FilterIndex) {
+                    case 1:
+                        this.schetscontrol.Schets.bitmap.Save(fs_Schets, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        break;
+
+                    case 2:
+                        this.schetscontrol.Schets.bitmap.Save(fs_Schets, System.Drawing.Imaging.ImageFormat.Bmp);
+                        break;
+
+                    case 3:
+                        this.schetscontrol.Schets.bitmap.Save(fs_Schets, System.Drawing.Imaging.ImageFormat.Png);
+                        break;
+                }
+
+                fs_Schets.Close();
+                    
+            }        
+        }
+
         private void afsluiten(object obj, EventArgs ea)
         {
-            this.Close();
+            if (this.onopgeslagenVeranderingen) {
+                if(MessageBox.Show("Er zijn nog onopgeslagen veranderingen!", "Oeps!", MessageBoxButtons.OKCancel) == DialogResult.OK) {
+                    this.Close();
+                }
+            }
+            
+        }
+
+        private void afsluiten(object obj, FormClosingEventArgs ea) {
+            if (this.onopgeslagenVeranderingen) {
+                if (MessageBox.Show("Er zijn nog onopgeslagen veranderingen!", "Oeps!", MessageBoxButtons.OKCancel) == DialogResult.OK) {
+                } else {
+                    ea.Cancel = true;
+                }
+            }
+
         }
 
         public SchetsWin()
@@ -60,7 +121,7 @@ namespace SchetsEditor
             schetscontrol = new SchetsControl();
             schetscontrol.Location = new Point(64, 10);
             schetscontrol.MouseDown += (object o, MouseEventArgs mea) =>
-                                       {   vast=true;  
+                                       {   vast=true;
                                            huidigeTool.MuisVast(schetscontrol, mea.Location); 
                                        };
             schetscontrol.MouseMove += (object o, MouseEventArgs mea) =>
@@ -70,11 +131,13 @@ namespace SchetsEditor
             schetscontrol.MouseUp   += (object o, MouseEventArgs mea) =>
                                        {   if (vast)
                                            huidigeTool.MuisLos (schetscontrol, mea.Location);
+                                           onopgeslagenVeranderingen = true;
                                            vast = false; 
                                        };
             schetscontrol.KeyPress +=  (object o, KeyPressEventArgs kpea) => 
                                        {   huidigeTool.Letter  (schetscontrol, kpea.KeyChar); 
                                        };
+            this.FormClosing += this.afsluiten;
             this.Controls.Add(schetscontrol);
 
             menuStrip = new MenuStrip();
@@ -93,6 +156,7 @@ namespace SchetsEditor
         {   
             ToolStripMenuItem menu = new ToolStripMenuItem("File");
             menu.MergeAction = MergeAction.MatchOnly;
+            menu.DropDownItems.Add("Opslaan", null, this.opslaan);
             menu.DropDownItems.Add("Sluiten", null, this.afsluiten);
             menuStrip.Items.Add(menu);
         }
