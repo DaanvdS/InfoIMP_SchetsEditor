@@ -122,28 +122,24 @@ namespace SchetsEditor {
 
             schetscontrol = new SchetsControl();
             schetscontrol.Location = new Point(64, 10);
-            schetscontrol.MouseDown += (object o, MouseEventArgs mea) =>
-                                       {   vast=true;  
-                                           huidigeTool.MuisVast(schetscontrol, mea.Location);
-                                           //nieuw
-                                           if(huidigeTool!=deTools[7])schetscontrol.Schets.voegtoeAanLijst(huidigeTool, new Point(mea.X, mea.Y), schetscontrol.PenKleur );
-                                       };
-            schetscontrol.MouseMove += (object o, MouseEventArgs mea) =>
-                                       {   if (vast)
-                                           huidigeTool.MuisDrag(schetscontrol, mea.Location);
-                                           //nieuw
-                                       };
-            schetscontrol.MouseUp   += (object o, MouseEventArgs mea) =>
-                                       {   if (vast)
-                                           huidigeTool.MuisLos (schetscontrol, mea.Location);
-                                           vast = false;
-
-                                           //nieuw
-                                           if (huidigeTool != deTools[7]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count -1].Eindpunt = new Point(mea.X, mea.Y);
-                                       };
-            schetscontrol.KeyPress +=  (object o, KeyPressEventArgs kpea) => 
-                                       {   huidigeTool.Letter  (schetscontrol, kpea.KeyChar); 
-                                       };
+            schetscontrol.MouseDown += (object o, MouseEventArgs mea) => {
+                vast = true;
+                huidigeTool.MuisVast(schetscontrol, mea.Location);
+            };
+            schetscontrol.MouseMove += (object o, MouseEventArgs mea) => {
+                if (vast)
+                    huidigeTool.MuisDrag(schetscontrol, mea.Location);
+            };
+            schetscontrol.MouseUp += (object o, MouseEventArgs mea) => {
+                if (vast)
+                    huidigeTool.MuisLos(schetscontrol, mea.Location);
+                onopgeslagenVeranderingen = true;
+                vast = false;
+            };
+            schetscontrol.KeyPress += (object o, KeyPressEventArgs kpea) => {
+                huidigeTool.Letter(schetscontrol, kpea.KeyChar);
+            };
+            this.FormClosing += this.afsluiten;
             this.Controls.Add(schetscontrol);
 
             menuStrip = new MenuStrip();

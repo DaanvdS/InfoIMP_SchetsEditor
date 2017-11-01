@@ -174,6 +174,7 @@ namespace SchetsEditor {
 
         public override void MuisLos(SchetsControl s, Point p) {
             s.Schets.verwijderUitLijst(p);
+            s.TekenUitLijst();
         }
 
         public override void MuisDrag(SchetsControl s, Point p) { }

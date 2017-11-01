@@ -62,5 +62,16 @@ namespace SchetsEditor {
             int lijndikte = int.Parse(((ToolStripMenuItem)obj).Text);
             pendikte = lijndikte;
         }
+
+        public void TekenUitLijst() {
+            schets.nieuwBitmap();
+            foreach (SchetsElement element in this.schets.schetslijst) {
+                penkleur = element.Kleur;
+                element.Soort.MuisVast(this, element.Beginpunt);
+                element.Soort.MuisLos(this, element.Eindpunt);
+                
+            }
+
+        }
     }
 }
