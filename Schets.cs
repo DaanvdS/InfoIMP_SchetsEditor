@@ -4,7 +4,7 @@ using System.Drawing;
 
 namespace SchetsEditor {
     public class Schets {
-        private Bitmap bitmap;
+        public Bitmap bitmap;
         private List<SchetsElement> schetslijst;
 
         public Schets() {
@@ -36,6 +36,10 @@ namespace SchetsEditor {
         }
         public void Roteer() {
             bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+        }
+
+        public void verwijderUitLijst(Point p) {
+            schetslijst.Remove(schetslijst.Find(x => x.Soort.isBevat(p,x.Beginpunt,x.Eindpunt)));
         }
     }
 }
