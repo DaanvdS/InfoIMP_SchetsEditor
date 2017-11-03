@@ -64,14 +64,18 @@ namespace SchetsEditor {
         }
 
         public void TekenUitLijst() {
-            schets.nieuwBitmap();
+            schets.Schoon();
             foreach (SchetsElement element in this.schets.schetslijst) {
                 penkleur = element.Kleur;
                 element.Soort.MuisVast(this, element.Beginpunt);
-                element.Soort.MuisLos(this, element.Eindpunt);
-                
+                if (element.Soort.GetType() == new TekstTool().GetType()) {
+                    foreach (char c in element.Tekst) {
+                        element.Soort.Letter(this, c);
+                    }
+                }
+                element.Soort.MuisLos(this, element.Eindpunt);    
             }
-
+            this.Invalidate();
         }
     }
 }

@@ -142,7 +142,8 @@ namespace SchetsEditor {
                                            if (huidigeTool != deTools[7]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count -1].Eindpunt = new Point(mea.X, mea.Y);
                                        };
             schetscontrol.KeyPress +=  (object o, KeyPressEventArgs kpea) => 
-                                       {   huidigeTool.Letter  (schetscontrol, kpea.KeyChar); 
+                                       {   huidigeTool.Letter  (schetscontrol, kpea.KeyChar);
+                                           if (huidigeTool == deTools[6]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count - 1].Tekst += kpea.KeyChar;
                                        };
             this.Controls.Add(schetscontrol);
 

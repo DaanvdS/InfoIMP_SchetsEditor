@@ -48,13 +48,12 @@ namespace SchetsEditor {
         }
 
         public void verwijderUitLijst(Point p) {
-            schetslijst.Remove(schetslijst.Find(x => x.Soort.isBevat(p,x.Beginpunt,x.Eindpunt)));
+            schetslijst.Remove(schetslijst.FindLast(x => x.Soort.isBevat(p,x)));   
         }
 		
 		public void voegtoeAanLijst(ISchetsTool t_huidigetool, Point t_beginpunt, Color t_kleur) {
             schetslijst.Add(new SchetsElement(t_huidigetool, t_beginpunt, t_kleur));
         }
-
 
         public String slaLijstOp() {
             return "";

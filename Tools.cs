@@ -8,7 +8,7 @@ namespace SchetsEditor {
         void MuisDrag(SchetsControl s, Point p);
         void MuisLos(SchetsControl s, Point p);
         void Letter(SchetsControl s, char c);
-        bool isBevat(Point p, Point beginpunt, Point eindpunt);
+        bool isBevat(Point p, SchetsElement s);
     }
 
     public abstract class StartpuntTool : ISchetsTool {
@@ -23,13 +23,7 @@ namespace SchetsEditor {
         }
         public abstract void MuisDrag(SchetsControl s, Point p);
         public abstract void Letter(SchetsControl s, char c);
-        public abstract bool isBevat(Point p, Point beginpunt, Point eindpunt);
-
-        public bool opLijn(Point p, Point beginpunt, Point eindpunt) {
-            int crossProduct = (p.X - beginpunt.X) * (eindpunt.X - beginpunt.X) - (p.Y - beginpunt.Y) * (eindpunt.Y - beginpunt.Y);
-            if (Math.Abs(crossProduct) > 0.1) return false;
-            else return true;
-        }
+        public abstract bool isBevat(Point p, SchetsElement s);
     }
 
     public class TekstTool : StartpuntTool {
@@ -52,7 +46,11 @@ namespace SchetsEditor {
             }
         }
 
-        public override bool isBevat(Point p, Point beginpunt, Point eindpunt) { return true;  }//Needs
+        public override bool isBevat(Point p, SchetsElement s) {
+            GraphicsPath myPath = new GraphicsPath();
+            myPath.AddString(s.Tekst, new FontFamily("Tahoma"), (int)FontStyle.Regular, 40, s.Beginpunt, StringFormat.GenericDefault);
+            return myPath.IsVisible(p);
+        }
     }
 
     public abstract class TweepuntTool : StartpuntTool {
@@ -96,8 +94,12 @@ namespace SchetsEditor {
             g.DrawRectangle(MaakPen(kwast, 3), TweepuntTool.Punten2Rechthoek(p1, p2));
         }
 
-        public override bool isBevat(Point p, Point beginpunt, Point eindpunt) {
-            return opLijn(p, beginpunt, new Point(beginpunt.X, eindpunt.Y)) || opLijn(p, beginpunt, new Point(beginpunt.X, eindpunt.X)) || opLijn(p, eindpunt, new Point(eindpunt.X, beginpunt.Y)) || opLijn(p, eindpunt, new Point(eindpunt.X, beginpunt.X));
+        public override bool isBevat(Point p, SchetsElement s) {
+            Size siz = new Size((s.Eindpunt.X - s.Beginpunt.X), (s.Eindpunt.Y - s.Beginpunt.Y));
+            Rectangle myRectangle = new Rectangle(s.Beginpunt, siz);
+            GraphicsPath myPath = new GraphicsPath();
+            myPath.AddRectangle(myRectangle);
+            return myPath.IsOutlineVisible(p.X, p.Y, MaakPen(kwast, 3));
         }
     }
 
@@ -108,9 +110,9 @@ namespace SchetsEditor {
             g.FillRectangle(kwast, TweepuntTool.Punten2Rechthoek(p1, p2));
         }
 
-        public override bool isBevat(Point p, Point beginpunt, Point eindpunt) {
-            Size siz = new Size((eindpunt.X - beginpunt.X), (eindpunt.Y - beginpunt.Y));
-            return new Rectangle(beginpunt, siz).Contains(p);
+        public override bool isBevat(Point p, SchetsElement s) {
+            Size siz = new Size((s.Eindpunt.X - s.Beginpunt.X), (s.Eindpunt.Y - s.Beginpunt.Y));
+            return new Rectangle(s.Beginpunt, siz).Contains(p);
         }
     }
 
@@ -121,8 +123,12 @@ namespace SchetsEditor {
             g.DrawEllipse(MaakPen(kwast, 3), TweepuntTool.Punten2Rechthoek(p1, p2));
         }
 
-        public override bool isBevat(Point p, Point beginpunt, Point eindpunt) {
-            return opLijn(p, beginpunt, new Point(beginpunt.X, eindpunt.Y)) || opLijn(p, beginpunt, new Point(beginpunt.X, eindpunt.X)) || opLijn(p, eindpunt, new Point(eindpunt.X, beginpunt.Y)) || opLijn(p, eindpunt, new Point(eindpunt.X, beginpunt.X));
+        public override bool isBevat(Point p, SchetsElement s) {
+            Size siz = new Size((s.Eindpunt.X - s.Beginpunt.X), (s.Eindpunt.Y - s.Beginpunt.Y));
+            Rectangle myEllipse = new Rectangle(s.Beginpunt, siz);
+            GraphicsPath myPath = new GraphicsPath();
+            myPath.AddEllipse(myEllipse);
+            return myPath.IsOutlineVisible(p.X,p.Y,MaakPen(kwast,3));
         }
     }
 
@@ -134,14 +140,14 @@ namespace SchetsEditor {
         }
 
 
-        public override bool isBevat(Point p, Point beginpunt, Point eindpunt) {
-            Size siz = new Size((eindpunt.X - beginpunt.X), (eindpunt.Y - beginpunt.Y));
-            Rectangle myEllipse = new Rectangle(beginpunt, siz);
+        public override bool isBevat(Point p, SchetsElement s) {
+            Size siz = new Size((s.Eindpunt.X - s.Beginpunt.X), (s.Eindpunt.Y - s.Beginpunt.Y));
+            Rectangle myEllipse = new Rectangle(s.Beginpunt, siz);
             GraphicsPath myPath = new GraphicsPath();
             myPath.AddEllipse(myEllipse);
             return myPath.IsVisible(p);
         }
-        
+
     }
 
     public class LijnTool : TweepuntTool {
@@ -151,8 +157,11 @@ namespace SchetsEditor {
             g.DrawLine(MaakPen(this.kwast, 3), p1, p2);
         }
 
-        public override bool isBevat(Point p, Point beginpunt, Point eindpunt) {
-            return opLijn(p, beginpunt, eindpunt);
+        public override bool isBevat(Point p, SchetsElement s) {
+            GraphicsPath myPath = new GraphicsPath();
+            myPath.AddLine(s.Beginpunt, s.Eindpunt);
+            myPath.Widen(MaakPen(kwast, 3));
+            return myPath.IsVisible(p);
         }
     }
 
@@ -162,10 +171,6 @@ namespace SchetsEditor {
         public override void MuisDrag(SchetsControl s, Point p) {
             this.MuisLos(s, p);
             this.MuisVast(s, p);
-        }
-
-        public override bool isBevat(Point p, Point beginpunt, Point eindpunt) {
-            return opLijn(p, beginpunt, eindpunt);
         }
     }
 
@@ -180,6 +185,8 @@ namespace SchetsEditor {
         public override void MuisDrag(SchetsControl s, Point p) { }
         public override void Letter(SchetsControl s, char c) { }
 
-        public override bool isBevat(Point p, Point beginpunt, Point eindpunt) { return false; }
+        public override bool isBevat(Point p, SchetsElement s) {
+            return false;
         }
+    }
 }
