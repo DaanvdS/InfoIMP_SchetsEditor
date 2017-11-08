@@ -4,6 +4,9 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Reflection;
 using System.Resources;
+using System.Linq;
+using System.Text;
+using System.IO;
 
 namespace SchetsEditor {
     public class SchetsWin : Form {
@@ -11,6 +14,7 @@ namespace SchetsEditor {
         SchetsControl schetscontrol;
         ISchetsTool huidigeTool;
         Panel paneel;
+        
         bool vast;
         bool onopgeslagenVeranderingen = true;
 
@@ -36,15 +40,24 @@ namespace SchetsEditor {
         public void laden() {
             //Show file dialog
             OpenFileDialog ofd_Schets = new OpenFileDialog();
-            ofd_Schets.Filter = "JPEG Image|*.jpg|Bitmap Image|*.bmp|PNG Image|*.png";
+            ofd_Schets.Filter = "SchetsPlus|*.txt|JPEG Image|*.jpg|Bitmap Image|*.bmp|PNG Image|*.png";
             ofd_Schets.Title = "Open image";
             ofd_Schets.ShowDialog();
 
             if (ofd_Schets.FileName != "") {
-                System.IO.FileStream fs_Schets = (System.IO.FileStream)ofd_Schets.OpenFile();
-                this.schetscontrol.Schets.bitmap = new Bitmap(Image.FromStream(fs_Schets));
-                this.schetscontrol.Invalidate();
-                fs_Schets.Close();
+                FileStream fs_Schets = (FileStream)ofd_Schets.OpenFile();
+                if (ofd_Schets.FilterIndex == 1) {
+                    StreamReader reader = new StreamReader(fs_Schets);
+                    string fileContents = reader.ReadToEnd();
+                    MessageBox.Show(fileContents, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.schetscontrol.Schets.schetslijst = stringNaarLijst(fileContents);
+                    this.schetscontrol.TekenUitLijst();
+                    fs_Schets.Close();
+                } else {
+                    this.schetscontrol.Schets.bitmap = new Bitmap(Image.FromStream(fs_Schets));
+                    this.schetscontrol.Invalidate();
+                    fs_Schets.Close();
+                }
             }
         }
 
@@ -61,7 +74,9 @@ namespace SchetsEditor {
                 switch (sfd_Schets.FilterIndex) {
                     case 1:
                         try {
-                            hetnieuweopslaan(schetscontrol.Schets.schetslijst);
+                            string s_lijst = lijstNaarString(schetscontrol.Schets.schetslijst);
+                            byte[] bArray = Encoding.UTF8.GetBytes(s_lijst);
+                            fs_Schets.Write(bArray, 0, bArray.Count());
 
                         } catch (Exception) {
                             MessageBox.Show("Some error in hetnieuweopslaan", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -82,7 +97,7 @@ namespace SchetsEditor {
                 }
 
                 fs_Schets.Close();
-                
+
             }
         }
 
@@ -124,29 +139,31 @@ namespace SchetsEditor {
 
             schetscontrol = new SchetsControl();
             schetscontrol.Location = new Point(64, 10);
-            schetscontrol.MouseDown += (object o, MouseEventArgs mea) =>
-                                       {   vast=true;  
-                                           huidigeTool.MuisVast(schetscontrol, mea.Location);
-                                           //nieuw
-                                           if(huidigeTool!=deTools[7])schetscontrol.Schets.voegtoeAanLijst(huidigeTool, new Point(mea.X, mea.Y), schetscontrol.PenKleur );
-                                       };
-            schetscontrol.MouseMove += (object o, MouseEventArgs mea) =>
-                                       {   if (vast)
-                                           huidigeTool.MuisDrag(schetscontrol, mea.Location);
-                                           //nieuw
-                                       };
-            schetscontrol.MouseUp   += (object o, MouseEventArgs mea) =>
-                                       {   if (vast)
-                                           huidigeTool.MuisLos (schetscontrol, mea.Location);
-                                           vast = false;
+            schetscontrol.MouseDown += (object o, MouseEventArgs mea) => {
+                vast = true;
+                huidigeTool.MuisVast(schetscontrol, mea.Location);
+                if (huidigeTool != deTools[7]) {
+                    schetscontrol.Schets.voegtoeAanLijst(huidigeTool, new Point(mea.X, mea.Y), schetscontrol.PenKleur);                    
+                }
+            };
+            schetscontrol.MouseMove += (object o, MouseEventArgs mea) => {
+                if (vast) {
+                    huidigeTool.MuisDrag(schetscontrol, mea.Location);
+                    //schetscontrol.Schets.voegtoeAanLijst(huidigeTool, new Point(mea.X, mea.Y), schetscontrol.PenKleur);
+                    if (huidigeTool == deTools[0]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count - 1].penPunten.Add(new Point(mea.X, mea.Y));
+                }
+            };
+            schetscontrol.MouseUp += (object o, MouseEventArgs mea) => {
+                if (vast)
+                    huidigeTool.MuisLos(schetscontrol, mea.Location);
+                vast = false;
 
-                                           //nieuw
-                                           if (huidigeTool != deTools[7]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count -1].Eindpunt = new Point(mea.X, mea.Y);
-                                       };
-            schetscontrol.KeyPress +=  (object o, KeyPressEventArgs kpea) => 
-                                       {   huidigeTool.Letter  (schetscontrol, kpea.KeyChar);
-                                           if (huidigeTool == deTools[6]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count - 1].Tekst += kpea.KeyChar;
-                                       };
+                if (huidigeTool != deTools[7]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count - 1].Eindpunt = new Point(mea.X, mea.Y);
+            };
+            schetscontrol.KeyPress += (object o, KeyPressEventArgs kpea) => {
+                huidigeTool.Letter(schetscontrol, kpea.KeyChar);
+                if (huidigeTool == deTools[6]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count - 1].Tekst += kpea.KeyChar;
+            };
             this.Controls.Add(schetscontrol);
 
             menuStrip = new MenuStrip();
@@ -245,25 +262,92 @@ namespace SchetsEditor {
             paneel.Controls.Add(cbb);
         }
 
-        private void hetnieuweopslaan(List<SchetsElement> s_list) {
+        private string lijstNaarString(List<SchetsElement> s_list) {
             string s_string = "";
             foreach (SchetsElement i in s_list) {
                 try {
                     s_string += i.Soort.ToString();
                     s_string += i.Beginpunt.ToString();
                     s_string += i.Eindpunt.ToString();
-                    s_string += i.Kleur.ToString();
-                    try { s_string += i.Tekst.ToString(); }             //deze try t/m de if statement is spagheti code om één @ aan het eind van de lijn te krijgen 
-                    catch (Exception) {                                 //de try gooit exceptions als de tekst null is...
-                        s_string += "@ \n";
-                    }
-                    if (!s_string.Substring(s_string.Length - 3).Contains("@"))
-                        s_string += "@ \n";
+                    s_string += i.Kleur.Name;
+                    s_string += " ";
+                    s_string += i.Tekst?.ToString();
+                    s_string += "\n";
                 } catch (Exception) {
                     MessageBox.Show(("Some error in building the string at element " + i), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             MessageBox.Show(s_string, "De string s list", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return s_string;
+        }
+        private List<SchetsElement> stringNaarLijst(string l_string) {
+            List<SchetsElement> l_list = new List<SchetsElement>();
+            int j = 0;
+            int index0 = 0;
+            int index1 = 0;
+            int index2 = 0;
+            int index3 = 0;
+            int index4 = 0;
+            int index5 = 0;
+            int index6 = 0;
+            int index7 = 0;
+
+            for (int i = 0; i < l_string.Length; i++) {
+                if (l_string[i] == '{' && j == 0) {
+                    index1 = i;
+                    j++;
+                } else if (l_string[i] == ',' && j == 1) {
+                    index2 = i;
+                    j++;
+                } else if (l_string[i] == '}' && j == 2) {
+                    index3 = i;
+                    j++;
+                } else if (l_string[i] == ',' && j == 3) {
+                    index4 = i;
+                    j++;
+                } else if (l_string[i] == '}' && j == 4) {
+                    index5 = i;
+                    j++;
+                } else if (l_string[i] == ' ' && j == 5) {
+                    index6 = i;
+                    j++;
+                } else if (l_string[i] == '\n' && j == 6) {
+                    index7 = i;
+                    string soort = l_string.Substring(index0, (index1 - index0));
+                    ISchetsTool e_soort = new PenTool();
+                    if (soort == "pen") {
+                        e_soort = new PenTool();
+                    } else if (soort == "lijn") {
+                        e_soort = new LijnTool();
+                    } else if (soort == "kader") {
+                        e_soort = new RechthoekTool();
+                    } else if (soort == "vlak") {
+                        e_soort = new VolRechthoekTool();
+                    } else if (soort == "ellips") {
+                        e_soort = new EllipsTool();
+                    } else if (soort == "ovlak") {
+                        e_soort = new VolEllipsTool();
+                    } else if (soort == "tekst") {
+                        e_soort = new TekstTool();
+                    }
+                    string x1 = l_string.Substring(index1 + 3, (index2 - (index1 + 3)));
+                    string y1 = l_string.Substring(index2 + 3, (index3 - (index2 + 3)));
+                    Point e_beginpunt = new Point(int.Parse(x1), int.Parse(y1));
+                    string x2 = l_string.Substring(index3 + 4, (index4 - (index3 + 4)));
+                    string y2 = l_string.Substring(index4 + 3, (index5 - (index4 + 3)));
+                    Point e_eindpunt = new Point(int.Parse(x2), int.Parse(y2));
+                    string kleur = l_string.Substring(index5 + 1, (index6 - (index5 + 1)));
+                    Color e_kleur = Color.FromName(kleur);
+                    string e_tekst = l_string.Substring(index6 + 1, (index7 - (index6 + 1)));
+                    if (e_tekst == "")
+                        e_tekst = null;
+                    l_list.Add(new SchetsElement(e_soort, e_beginpunt, e_eindpunt, e_kleur, e_tekst));
+
+                    j = 0;
+                    index0 = index7 + 1;
+                }
+            }
+            return l_list;
         }
     }
 }

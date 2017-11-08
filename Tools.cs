@@ -172,6 +172,16 @@ namespace SchetsEditor {
             this.MuisLos(s, p);
             this.MuisVast(s, p);
         }
+
+        public override bool isBevat(Point p, SchetsElement s) {
+            for (int i = 0; i < (s.penPunten.Count - 1); i++) {
+                GraphicsPath myPath = new GraphicsPath();
+                myPath.AddLine(s.penPunten[i], s.penPunten[i+1]);
+                myPath.Widen(MaakPen(kwast, 3));
+                if (myPath.IsVisible(p)) { return true;  }
+            }
+            return false;
+        }
     }
 
     public class GumTool : StartpuntTool {

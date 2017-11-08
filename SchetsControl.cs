@@ -73,6 +73,11 @@ namespace SchetsEditor {
                         element.Soort.Letter(this, c);
                     }
                 }
+                if (element.Soort.GetType() == new PenTool().GetType()) {
+                    foreach (Point p in element.penPunten) {
+                        element.Soort.MuisDrag(this, p);
+                    }
+                }
                 element.Soort.MuisLos(this, element.Eindpunt);    
             }
             this.Invalidate();

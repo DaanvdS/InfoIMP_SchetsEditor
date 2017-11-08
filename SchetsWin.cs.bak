@@ -51,7 +51,7 @@ namespace SchetsEditor {
         private void opslaan(object sender, EventArgs e) {
             //Show file dialog
             SaveFileDialog sfd_Schets = new SaveFileDialog();
-            sfd_Schets.Filter = "JPEG Image|*.jpg|Bitmap Image|*.bmp|PNG Image|*.png";
+            sfd_Schets.Filter = "SchetsPlus|*.txt|JPEG Image|*.jpg|Bitmap Image|*.bmp|PNG Image|*.png";
             sfd_Schets.Title = "Save image";
             sfd_Schets.ShowDialog();
 
@@ -60,27 +60,29 @@ namespace SchetsEditor {
                 System.IO.FileStream fs_Schets = (System.IO.FileStream)sfd_Schets.OpenFile();
                 switch (sfd_Schets.FilterIndex) {
                     case 1:
+                        try {
+                            hetnieuweopslaan(schetscontrol.Schets.schetslijst);
+
+                        } catch (Exception) {
+                            MessageBox.Show("Some error in hetnieuweopslaan", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show("", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        break;
+                    case 2:
                         this.schetscontrol.Schets.bitmap.Save(fs_Schets, System.Drawing.Imaging.ImageFormat.Jpeg);
                         break;
 
-                    case 2:
+                    case 3:
                         this.schetscontrol.Schets.bitmap.Save(fs_Schets, System.Drawing.Imaging.ImageFormat.Bmp);
                         break;
 
-                    case 3:
+                    case 4:
                         this.schetscontrol.Schets.bitmap.Save(fs_Schets, System.Drawing.Imaging.ImageFormat.Png);
                         break;
                 }
 
                 fs_Schets.Close();
-
-                //Show file dialog
-                sfd_Schets = new SaveFileDialog();
-                sfd_Schets.Filter = "*.sef";
-                sfd_Schets.Title = "Save image";
-                sfd_Schets.ShowDialog();
-                fs_Schets = (System.IO.FileStream)sfd_Schets.OpenFile();
-                //fs_Schets.WriteAllText(this.schetscontrol.Schets.slaLijstOp());
+                
             }
         }
 
@@ -122,24 +124,29 @@ namespace SchetsEditor {
 
             schetscontrol = new SchetsControl();
             schetscontrol.Location = new Point(64, 10);
-            schetscontrol.MouseDown += (object o, MouseEventArgs mea) => {
-                vast = true;
-                huidigeTool.MuisVast(schetscontrol, mea.Location);
-            };
-            schetscontrol.MouseMove += (object o, MouseEventArgs mea) => {
-                if (vast)
-                    huidigeTool.MuisDrag(schetscontrol, mea.Location);
-            };
-            schetscontrol.MouseUp += (object o, MouseEventArgs mea) => {
-                if (vast)
-                    huidigeTool.MuisLos(schetscontrol, mea.Location);
-                onopgeslagenVeranderingen = true;
-                vast = false;
-            };
-            schetscontrol.KeyPress += (object o, KeyPressEventArgs kpea) => {
-                huidigeTool.Letter(schetscontrol, kpea.KeyChar);
-            };
-            this.FormClosing += this.afsluiten;
+            schetscontrol.MouseDown += (object o, MouseEventArgs mea) =>
+                                       {   vast=true;  
+                                           huidigeTool.MuisVast(schetscontrol, mea.Location);
+                                           //nieuw
+                                           if(huidigeTool!=deTools[7])schetscontrol.Schets.voegtoeAanLijst(huidigeTool, new Point(mea.X, mea.Y), schetscontrol.PenKleur );
+                                       };
+            schetscontrol.MouseMove += (object o, MouseEventArgs mea) =>
+                                       {   if (vast)
+                                           huidigeTool.MuisDrag(schetscontrol, mea.Location);
+                                           //nieuw
+                                       };
+            schetscontrol.MouseUp   += (object o, MouseEventArgs mea) =>
+                                       {   if (vast)
+                                           huidigeTool.MuisLos (schetscontrol, mea.Location);
+                                           vast = false;
+
+                                           //nieuw
+                                           if (huidigeTool != deTools[7]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count -1].Eindpunt = new Point(mea.X, mea.Y);
+                                       };
+            schetscontrol.KeyPress +=  (object o, KeyPressEventArgs kpea) => 
+                                       {   huidigeTool.Letter  (schetscontrol, kpea.KeyChar);
+                                           if (huidigeTool == deTools[6]) schetscontrol.Schets.Schetslijst[schetscontrol.Schets.Schetslijst.Count - 1].Tekst += kpea.KeyChar;
+                                       };
             this.Controls.Add(schetscontrol);
 
             menuStrip = new MenuStrip();
@@ -236,6 +243,27 @@ namespace SchetsEditor {
                 cbb.Items.Add(k);
             cbb.SelectedIndex = 0;
             paneel.Controls.Add(cbb);
+        }
+
+        private void hetnieuweopslaan(List<SchetsElement> s_list) {
+            string s_string = "";
+            foreach (SchetsElement i in s_list) {
+                try {
+                    s_string += i.Soort.ToString();
+                    s_string += i.Beginpunt.ToString();
+                    s_string += i.Eindpunt.ToString();
+                    s_string += i.Kleur.ToString();
+                    try { s_string += i.Tekst.ToString(); }             //deze try t/m de if statement is spagheti code om één @ aan het eind van de lijn te krijgen 
+                    catch (Exception) {                                 //de try gooit exceptions als de tekst null is...
+                        s_string += "@ \n";
+                    }
+                    if (!s_string.Substring(s_string.Length - 3).Contains("@"))
+                        s_string += "@ \n";
+                } catch (Exception) {
+                    MessageBox.Show(("Some error in building the string at element " + i), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            MessageBox.Show(s_string, "De string s list", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }
