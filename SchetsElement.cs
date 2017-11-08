@@ -52,12 +52,32 @@ namespace SchetsEditor {
             soort = t_soort;
             beginpunt = t_beginpunt;
             kleur = t_kleur;
-            //if (soort.GetType() == new PenTool().GetType()) {
             penpunten = new List<Point>();
-            //}
         }
 
         public SchetsElement() {
+        }
+
+        public void Roteer(int height, int width) {
+            this.beginpunt=movePoint(this.beginpunt, height, width);
+            for(int i =0;i<penpunten.Count;i++) {
+                penpunten[i] = movePoint(penpunten[i], height, width);
+            }
+            this.eindpunt = movePoint(this.eindpunt, height, width);
+        }
+
+        public Point movePoint(Point p, int height, int width) {
+            if (p.X <= (width / 2) && p.Y <= (height / 2)) {
+                return new Point(width-p.X,p.Y);
+            } else if (p.X >= (width / 2) && (p.Y <= (height / 2))) {
+                return new Point(p.X, height-p.Y);
+            } else if (p.X < (width / 2) && p.Y > (height / 2)) {
+                return new Point(p.X, p.Y-height);
+            } else if (p.X > (width / 2) && p.Y > (height / 2)) {
+                return new Point(p.X-width, p.Y);
+            } else {
+                return new Point(0,0);
+            }
         }
     }
 }

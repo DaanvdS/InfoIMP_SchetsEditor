@@ -45,6 +45,9 @@ namespace SchetsEditor {
         }
         public void Roteer() {
             bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            foreach(SchetsElement element in schetslijst) {
+                element.Roteer(this.bitmap.Height, this.bitmap.Width);
+            }
         }
 
         public void verwijderUitLijst(Point p) {
