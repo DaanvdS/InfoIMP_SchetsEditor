@@ -68,13 +68,17 @@ namespace SchetsEditor {
 
         public Point movePoint(Point p, int height, int width) {
             if (p.X <= (width / 2) && p.Y <= (height / 2)) {
-                return new Point(width-p.X,p.Y);
+                Point t = new Point(width - p.Y, p.X);
+                return t;
             } else if (p.X >= (width / 2) && (p.Y <= (height / 2))) {
-                return new Point(p.X, height-p.Y);
+                Point t = new Point(height - p.Y, p.X);
+                return t;
             } else if (p.X < (width / 2) && p.Y > (height / 2)) {
-                return new Point(p.X, p.Y-height);
+                Point t = new Point(height - p.Y, p.X);
+                return t;
             } else if (p.X > (width / 2) && p.Y > (height / 2)) {
-                return new Point(p.X-width, p.Y);
+                Point t = new Point(height - p.Y, p.X); ;
+                return t;
             } else {
                 return new Point(0,0);
             }
