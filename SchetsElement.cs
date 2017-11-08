@@ -17,6 +17,7 @@ namespace SchetsEditor {
         Color kleur;
         string tekst;
         List<Point> penpunten;
+        bool zichtbaar = true;
 
         public ISchetsTool Soort { get { return soort; } set { soort = value; } }
         public Point Beginpunt { get { return beginpunt; } set { beginpunt = value; } }
@@ -24,6 +25,7 @@ namespace SchetsEditor {
         public Color Kleur { get { return kleur; } set { kleur = value; } }
         public string Tekst { get { return tekst; } set { tekst = value; } }
         public List<Point> penPunten { get { return penpunten; } set { penpunten = value; } }
+        public bool Zichtbaar { get { return zichtbaar; } set { zichtbaar = value; } }
         //int SchetsLayer { get; set; }
 		
 		public SchetsElement(ISchetsTool t_soort, Point t_beginpunt, Point t_eindpunt, Color t_kleur, string t_tekst) {

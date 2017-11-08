@@ -183,6 +183,8 @@ namespace SchetsEditor {
             menu.MergeAction = MergeAction.MatchOnly;
             menu.DropDownItems.Add("Opslaan", null, this.opslaan);
             menu.DropDownItems.Add("Sluiten", null, this.afsluiten);
+            menu.DropDownItems.Add("Undo", null, this.undo);
+            menu.DropDownItems.Add("Redo", null, this.redo);
             menuStrip.Items.Add(menu);
         }
 
@@ -280,6 +282,17 @@ namespace SchetsEditor {
             MessageBox.Show(s_string, "De string s list", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return s_string;
         }
+
+        private void undo(object sender, EventArgs e) {
+            this.schetscontrol.Schets.Schetslijst[this.schetscontrol.Schets.Schetslijst.Count - 1].Zichtbaar = false;
+            this.schetscontrol.TekenUitLijst();
+        }
+
+        private void redo(object sender, EventArgs e) {
+            this.schetscontrol.Schets.Schetslijst[this.schetscontrol.Schets.Schetslijst.Count - 1].Zichtbaar = true;
+            this.schetscontrol.TekenUitLijst();
+        }
+
         private List<SchetsElement> stringNaarLijst(string l_string) {
             List<SchetsElement> l_list = new List<SchetsElement>();
             int j = 0;

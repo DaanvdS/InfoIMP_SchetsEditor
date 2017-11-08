@@ -66,19 +66,21 @@ namespace SchetsEditor {
         public void TekenUitLijst() {
             schets.Schoon();
             foreach (SchetsElement element in this.schets.schetslijst) {
-                penkleur = element.Kleur;
-                element.Soort.MuisVast(this, element.Beginpunt);
-                if (element.Soort.GetType() == new TekstTool().GetType()) {
-                    foreach (char c in element.Tekst) {
-                        element.Soort.Letter(this, c);
+                if (element.Zichtbaar) {
+                    penkleur = element.Kleur;
+                    element.Soort.MuisVast(this, element.Beginpunt);
+                    if (element.Soort.GetType() == new TekstTool().GetType()) {
+                        foreach (char c in element.Tekst) {
+                            element.Soort.Letter(this, c);
+                        }
                     }
-                }
-                if (element.Soort.GetType() == new PenTool().GetType()) {
-                    foreach (Point p in element.penPunten) {
-                        element.Soort.MuisDrag(this, p);
+                    if (element.Soort.GetType() == new PenTool().GetType()) {
+                        foreach (Point p in element.penPunten) {
+                            element.Soort.MuisDrag(this, p);
+                        }
                     }
+                    element.Soort.MuisLos(this, element.Eindpunt);
                 }
-                element.Soort.MuisLos(this, element.Eindpunt);    
             }
             this.Invalidate();
         }
