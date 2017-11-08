@@ -71,7 +71,7 @@ namespace SchetsEditor {
                     element.Soort.MuisVast(this, element.Beginpunt);
                     if (element.Soort.GetType() == new TekstTool().GetType()) {
                         foreach (char c in element.Tekst) {
-                            element.Soort.Letter(this, c);
+                            element.Soort.Letter(this, c, element.Gedraaid);
                         }
                     }
                     if (element.Soort.GetType() == new PenTool().GetType()) {

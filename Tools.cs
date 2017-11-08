@@ -8,6 +8,7 @@ namespace SchetsEditor {
         void MuisDrag(SchetsControl s, Point p);
         void MuisLos(SchetsControl s, Point p);
         void Letter(SchetsControl s, char c);
+        void Letter(SchetsControl s, char c, int gedraaid);
         bool isBevat(Point p, SchetsElement s);
     }
 
@@ -23,6 +24,7 @@ namespace SchetsEditor {
         }
         public abstract void MuisDrag(SchetsControl s, Point p);
         public abstract void Letter(SchetsControl s, char c);
+        public abstract void Letter(SchetsControl s, char c, int gedraaid);
         public abstract bool isBevat(Point p, SchetsElement s);
     }
 
@@ -36,19 +38,53 @@ namespace SchetsEditor {
                 Graphics gr = s.MaakBitmapGraphics();
                 Font font = new Font("Tahoma", 40);
                 string tekst = c.ToString();
-                SizeF sz =
-                gr.MeasureString(tekst, font, this.startpunt, StringFormat.GenericTypographic);
-                gr.DrawString(tekst, font, kwast,
-                                              this.startpunt, StringFormat.GenericTypographic);
-                // gr.DrawRectangle(Pens.Black, startpunt.X, startpunt.Y, sz.Width, sz.Height);
-                startpunt.X += (int)sz.Width;
+                SizeF sz = gr.MeasureString(tekst, font, this.startpunt, StringFormat.GenericTypographic);
+
+                GraphicsPath myPath = new GraphicsPath();
+                myPath.AddString(c.ToString(), new FontFamily("Tahoma"), (int)FontStyle.Regular, 48, this.startpunt, StringFormat.GenericDefault);
+                
+                gr.FillPath(kwast, myPath);
+                startpunt.X += (int)myPath.GetBounds().Width + 5;
                 s.Invalidate();
             }
         }
 
+        public override void Letter(SchetsControl s, char c, int gedraaid) {
+            if (c >= 32) {
+                Graphics gr = s.MaakBitmapGraphics();
+                Font font = new Font("Tahoma", 40);
+                string tekst = c.ToString();
+                SizeF sz = gr.MeasureString(tekst, font, this.startpunt, StringFormat.GenericTypographic);
+
+                GraphicsPath myPath = new GraphicsPath();
+                myPath.AddString(c.ToString(), new FontFamily("Tahoma"), (int)FontStyle.Regular, 48, this.startpunt, StringFormat.GenericDefault);
+                int width = (int)myPath.GetBounds().Width + 5;
+                Matrix m = new Matrix();
+                m.RotateAt(gedraaid, startpunt);
+                myPath.Transform(m);
+
+                gr.FillPath(kwast, myPath);
+                if (gedraaid == 0) {
+                    startpunt.X += width;
+                } else if (gedraaid == 90) {
+                    startpunt.Y += width;
+                } else if(gedraaid == 180) {
+                    startpunt.X -= width;
+                } else if (gedraaid == 270) {
+                    startpunt.Y -= width;
+                }
+
+                s.Invalidate();
+            }
+        }
+        
+
         public override bool isBevat(Point p, SchetsElement s) {
             GraphicsPath myPath = new GraphicsPath();
-            myPath.AddString(s.Tekst, new FontFamily("Tahoma"), (int)FontStyle.Regular, 40, s.Beginpunt, StringFormat.GenericDefault);
+            myPath.AddString(s.Tekst, new FontFamily("Tahoma"), (int)FontStyle.Regular, 48, s.Beginpunt, StringFormat.GenericDefault);
+            Matrix m = new Matrix();
+            m.RotateAt(s.Gedraaid, s.Beginpunt);
+            myPath.Transform(m);
             return myPath.IsVisible(p);
         }
     }
@@ -78,8 +114,8 @@ namespace SchetsEditor {
             this.Compleet(s.MaakBitmapGraphics(), this.startpunt, p);
             s.Invalidate();
         }
-        public override void Letter(SchetsControl s, char c) {
-        }
+        public override void Letter(SchetsControl s, char c) { }
+        public override void Letter(SchetsControl s, char c, int gedraaid) { }
         public abstract void Bezig(Graphics g, Point p1, Point p2);
 
         public virtual void Compleet(Graphics g, Point p1, Point p2) {
@@ -194,7 +230,7 @@ namespace SchetsEditor {
 
         public override void MuisDrag(SchetsControl s, Point p) { }
         public override void Letter(SchetsControl s, char c) { }
-
+        public override void Letter(SchetsControl s, char c, int gedraaid) { }
         public override bool isBevat(Point p, SchetsElement s) {
             return false;
         }
